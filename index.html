@@ -8,27 +8,51 @@
 </head>
 <body>
   <main>
-    <h1>Treino do Bruno</h1>
+    <!-- Tela 1: sugestão e escolha do treino -->
+    <div id="tela-inicial">
+      <h1>Treino do Bruno</h1>
 
-    <section class="sugestao">
-      <p class="rotulo">Sugestão de hoje</p>
-      <p id="treino-sugerido" class="treino-sugerido"></p>
-      <p id="motivo-sugestao" class="motivo"></p>
-    </section>
+      <section class="sugestao">
+        <p class="rotulo">Sugestão de hoje</p>
+        <p id="treino-sugerido" class="treino-sugerido"></p>
+        <p id="motivo-sugestao" class="motivo"></p>
+      </section>
 
-    <section>
-      <p class="rotulo">Escolher manualmente</p>
-      <div class="botoes">
-        <button id="botao-A" type="button">Treino A</button>
-        <button id="botao-B" type="button">Treino B</button>
-      </div>
-    </section>
+      <section>
+        <p class="rotulo">Escolher manualmente</p>
+        <div class="botoes">
+          <button id="botao-A" type="button">Treino A</button>
+          <button id="botao-B" type="button">Treino B</button>
+        </div>
+      </section>
 
-    <section>
-      <h2 id="titulo-treino"></h2>
-      <p id="duracao-treino" class="motivo"></p>
-      <ol id="lista-exercicios" class="exercicios"></ol>
-    </section>
+      <section>
+        <h2 id="titulo-treino"></h2>
+        <p id="duracao-treino" class="motivo"></p>
+        <ol id="lista-exercicios" class="exercicios"></ol>
+      </section>
+
+      <button id="botao-iniciar" class="primario" type="button">Iniciar treino</button>
+    </div>
+
+    <!-- Tela 2: lista de exercícios do treino em andamento -->
+    <div id="tela-treino" hidden>
+      <button id="voltar-inicio" class="voltar" type="button">← Voltar</button>
+      <h2 id="treino-em-andamento"></h2>
+      <p class="motivo">Toque em um exercício para registrar as séries.</p>
+      <ol id="lista-treino" class="exercicios"></ol>
+    </div>
+
+    <!-- Tela 3: registro de um exercício -->
+    <div id="tela-exercicio" hidden>
+      <button id="voltar-treino" class="voltar" type="button">← Voltar</button>
+      <h2 id="exercicio-nome"></h2>
+      <p id="exercicio-series" class="exercicio-series"></p>
+      <p id="exercicio-obs" class="exercicio-obs"></p>
+
+      <div id="linhas-series"></div>
+      <button id="botao-add-serie" type="button">+ Adicionar série</button>
+    </div>
   </main>
 
   <script src="app.js"></script>

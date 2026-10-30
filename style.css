@@ -93,6 +93,59 @@ button.ativo {
   margin-bottom: 10px;
 }
 
+button.primario {
+  width: 100%;
+  background: #0369a1;
+  border-color: #38bdf8;
+}
+
+button.voltar {
+  flex: none;
+  min-height: 44px;
+  padding: 0 16px;
+  margin-bottom: 8px;
+  font-size: 1rem;
+}
+
+.exercicios li.toque {
+  cursor: pointer;
+}
+
+.linha-serie {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.linha-serie .numero {
+  width: 70px;
+  font-weight: 600;
+}
+
+.linha-serie label {
+  flex: 1;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.linha-serie input {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 2px;
+  font-size: 1.2rem;
+  text-align: center;
+  color: #e2e8f0;
+  background: #1e293b;
+  border: 2px solid #334155;
+  border-radius: 12px;
+}
+
+#botao-add-serie {
+  width: 100%;
+  margin-top: 8px;
+}
+
 .exercicio-nome {
   font-weight: 600;
 }
