@@ -12,7 +12,7 @@ body {
 main {
   max-width: 480px;
   margin: 0 auto;
-  padding: 20px 16px 40px;
+  padding: 20px 16px 100px;
 }
 
 h1 {
@@ -119,8 +119,20 @@ button.voltar {
 }
 
 .linha-serie .numero {
-  width: 70px;
+  width: 58px;
+  font-size: 0.9rem;
   font-weight: 600;
+}
+
+button.remover {
+  flex: none;
+  width: 44px;
+  min-height: 44px;
+  padding: 0;
+  margin-top: 16px;
+  font-size: 1rem;
+  color: #f87171;
+  border-color: #475569;
 }
 
 .linha-serie label {
@@ -144,6 +156,206 @@ button.voltar {
 #botao-add-serie {
   width: 100%;
   margin-top: 8px;
+}
+
+.exercicio-feito {
+  color: #94a3b8;
+  font-size: 0.85rem;
+  margin-top: 6px;
+}
+
+/* Exercício concluído: borda verde e nome em verde */
+.exercicios li.concluido {
+  border-color: #4ade80;
+  background: #14281f;
+}
+
+.exercicios li.concluido .exercicio-nome {
+  color: #4ade80;
+}
+
+button.feito {
+  background: #166534;
+  border-color: #4ade80;
+}
+
+/* Barra de progresso do treino */
+.progresso {
+  height: 10px;
+  margin-top: 12px;
+  background: #1e293b;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+#progresso-barra {
+  width: 0;
+  height: 100%;
+  background: #4ade80;
+  transition: width 0.3s;
+}
+
+#repetir-ultima {
+  width: 100%;
+  min-height: 48px;
+  margin-bottom: 16px;
+  font-size: 1rem;
+}
+
+/* Cronômetro de descanso */
+.descanso {
+  margin-top: 24px;
+  padding: 16px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 16px;
+}
+
+.descanso-linha {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.descanso-linha button {
+  flex: none;
+  width: 72px;
+  min-height: 48px;
+  font-size: 1rem;
+}
+
+.descanso-tempo {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-size: 2.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+#botao-concluir-exercicio {
+  margin-top: 20px;
+}
+
+/* Detalhe de um dia no calendário */
+.dia.toque {
+  cursor: pointer;
+}
+
+.dia-detalhe {
+  margin-top: 8px;
+}
+
+.sessao {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 14px;
+  padding: 14px;
+  margin-bottom: 10px;
+}
+
+button.perigo {
+  width: 100%;
+  min-height: 44px;
+  margin-top: 12px;
+  font-size: 0.95rem;
+  color: #f87171;
+}
+
+#botao-concluir,
+#botao-exportar {
+  margin-top: 8px;
+}
+
+#botao-importar {
+  width: 100%;
+  margin-top: 12px;
+}
+
+/* Barra de navegação fixa embaixo */
+nav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  background: #1e293b;
+  border-top: 1px solid #334155;
+}
+
+nav button {
+  min-height: 60px;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  font-size: 0.95rem;
+  color: #94a3b8;
+}
+
+nav button.ativo {
+  background: transparent;
+  color: #38bdf8;
+}
+
+/* Calendário */
+.mes-nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.mes-nav button {
+  flex: none;
+  width: 56px;
+  font-size: 1.5rem;
+}
+
+.mes-titulo {
+  flex: 1;
+  margin: 0;
+  text-align: center;
+  font-weight: 600;
+}
+
+.calendario {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.dia-semana {
+  text-align: center;
+  font-size: 0.75rem;
+  color: #94a3b8;
+}
+
+.dia {
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  font-size: 0.9rem;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 10px;
+}
+
+.dia.hoje {
+  border-color: #38bdf8;
+}
+
+.dia.treinou {
+  background: #0369a1;
+  border-color: #38bdf8;
+}
+
+.dia .marca {
+  font-size: 0.75rem;
+  font-weight: 700;
 }
 
 .exercicio-nome {

@@ -16,6 +16,7 @@
         <p class="rotulo">Sugestão de hoje</p>
         <p id="treino-sugerido" class="treino-sugerido"></p>
         <p id="motivo-sugestao" class="motivo"></p>
+        <p id="resumo-semana" class="motivo"></p>
       </section>
 
       <section>
@@ -39,8 +40,11 @@
     <div id="tela-treino" hidden>
       <button id="voltar-inicio" class="voltar" type="button">← Voltar</button>
       <h2 id="treino-em-andamento"></h2>
+      <div class="progresso"><div id="progresso-barra"></div></div>
+      <p id="progresso-texto" class="motivo"></p>
       <p class="motivo">Toque em um exercício para registrar as séries.</p>
       <ol id="lista-treino" class="exercicios"></ol>
+      <button id="botao-concluir" class="primario" type="button">Concluir treino</button>
     </div>
 
     <!-- Tela 3: registro de um exercício -->
@@ -50,11 +54,62 @@
       <p id="exercicio-series" class="exercicio-series"></p>
       <p id="exercicio-obs" class="exercicio-obs"></p>
 
+      <p id="ultima-vez" class="motivo"></p>
+      <button id="repetir-ultima" type="button" hidden>Repetir última vez</button>
+
       <div id="linhas-series"></div>
       <button id="botao-add-serie" type="button">+ Adicionar série</button>
+
+      <section class="descanso">
+        <p class="rotulo">Descanso</p>
+        <div class="descanso-linha">
+          <button id="descanso-menos" type="button">−15s</button>
+          <p id="descanso-tempo" class="descanso-tempo">1:30</p>
+          <button id="descanso-mais" type="button">+15s</button>
+        </div>
+        <button id="descanso-iniciar" type="button">Iniciar descanso</button>
+      </section>
+
+      <button id="botao-concluir-exercicio" class="primario" type="button">Concluir exercício</button>
+    </div>
+
+    <!-- Tela 4: calendário -->
+    <div id="tela-calendario" hidden>
+      <h1>Calendário</h1>
+      <div class="mes-nav">
+        <button id="mes-anterior" type="button" aria-label="Mês anterior">‹</button>
+        <p id="mes-titulo" class="mes-titulo"></p>
+        <button id="mes-proximo" type="button" aria-label="Próximo mês">›</button>
+      </div>
+      <div id="calendario-grade" class="calendario"></div>
+      <p id="mes-resumo" class="motivo"></p>
+      <div id="dia-detalhe" class="dia-detalhe" hidden></div>
+    </div>
+
+    <!-- Tela 5: ajustes e backup -->
+    <div id="tela-ajustes" hidden>
+      <h1>Ajustes</h1>
+      <section>
+        <h2>Backup</h2>
+        <p class="motivo">
+          Seus dados ficam só neste navegador. Exporte o backup de vez em quando
+          e guarde o arquivo (por exemplo, no Google Drive).
+        </p>
+        <button id="botao-exportar" class="primario" type="button">Exportar backup</button>
+        <button id="botao-importar" type="button">Importar backup</button>
+        <input id="arquivo-importar" type="file" accept="application/json,.json" hidden>
+        <p id="ajustes-mensagem" class="motivo"></p>
+      </section>
     </div>
   </main>
 
+  <nav>
+    <button type="button" data-aba="treino" class="ativo">Treino</button>
+    <button type="button" data-aba="calendario">Calendário</button>
+    <button type="button" data-aba="ajustes">Ajustes</button>
+  </nav>
+
+  <script src="dados.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
