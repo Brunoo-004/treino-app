@@ -57,11 +57,17 @@
     <!-- Tela 3: registro de um exercício -->
     <div id="tela-exercicio" hidden>
       <button id="voltar-treino" class="voltar" type="button">← Voltar</button>
+      <p id="tag-alternativa" class="tag" hidden>Alternativa</p>
       <h2 id="exercicio-nome"></h2>
       <p id="exercicio-series" class="exercicio-series"></p>
       <p id="exercicio-obs" class="exercicio-obs"></p>
+      <button id="trocar-alternativa" class="secundario" type="button"></button>
 
       <p id="ultima-vez" class="motivo"></p>
+      <div id="progressao" class="progressao" hidden>
+        <p id="progressao-texto"></p>
+        <button id="aplicar-progressao" type="button"></button>
+      </div>
       <button id="repetir-ultima" type="button" hidden>Repetir última vez</button>
 
       <div id="linhas-series"></div>
@@ -78,6 +84,16 @@
       </section>
 
       <button id="botao-concluir-exercicio" class="primario" type="button">Concluir exercício</button>
+
+      <section id="evolucao" class="evolucao" hidden>
+        <p class="rotulo">Evolução de carga · maior peso por treino</p>
+        <div id="grafico" class="grafico"></div>
+        <p id="grafico-info" class="motivo"></p>
+        <details>
+          <summary>Ver valores</summary>
+          <ul id="grafico-tabela" class="grafico-tabela"></ul>
+        </details>
+      </section>
     </div>
 
     <!-- Tela 4: calendário -->

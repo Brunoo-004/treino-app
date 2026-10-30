@@ -104,12 +104,6 @@ function chaveRascunho(letra, indice) {
   return `${letra}-${indice}`;
 }
 
-// "3x10-12" → 3 séries. Se não achar número, usa 3.
-function contarSeries(texto) {
-  const n = parseInt(texto, 10);
-  return Number.isNaN(n) ? 3 : n;
-}
-
 function abrirTreino() {
   const treino = TREINOS[treinoAtual];
   document.getElementById("treino-em-andamento").textContent = treino.nome;
@@ -127,7 +121,8 @@ function abrirTreino() {
     const li = document.createElement("li");
     li.className = concluido ? "toque concluido" : "toque";
     li.innerHTML = `
-      <div class="exercicio-nome">${concluido ? "✓ " : ""}${indice + 1}. ${ex.nome}</div>
+      <div class="exercicio-nome">${concluido ? "✓ " : ""}${indice + 1}. ${nomeEmUso(treinoAtual, indice)}</div>
+      ${usandoAlternativa(treinoAtual, indice) ? `<div class="exercicio-alternativa">Usando a alternativa</div>` : ""}
       <div class="exercicio-series">${ex.series}</div>
       ${registradas > 0 ? `<div class="exercicio-feito">${registradas} série(s) registrada(s)</div>` : ""}
     `;
@@ -207,7 +202,7 @@ function criarLinhaSerie(serie, indice, anterior, aoRemover) {
 // Redesenha todas as linhas de série do exercício aberto.
 function desenharSeries() {
   const lista = listaDeSeries();
-  const ultima = ultimaVezDoExercicio(exercicioDaTela().nome);
+  const ultima = ultimaVezDoExercicio(nomeEmUso(treinoAtual, exercicioAtual));
   const area = document.getElementById("linhas-series");
   area.innerHTML = "";
   lista.forEach((serie, i) => {
@@ -237,25 +232,198 @@ function abrirExercicio(indice) {
     dados.rascunho[chave] = Array.from({ length: contarSeries(ex.series) }, () => ({ reps: "", peso: "" }));
   }
 
-  document.getElementById("exercicio-nome").textContent = ex.nome;
   document.getElementById("exercicio-series").textContent = `Plano: ${ex.series}`;
   document.getElementById("exercicio-obs").textContent = ex.obs ? `⚠ ${ex.obs}` : "";
 
-  const ultima = ultimaVezDoExercicio(ex.nome);
-  elUltimaVez.textContent = ultima
-    ? `Última vez (${formatarData(ultima.data)}): ${descreverSeries(ultima.series)}`
-    : "Primeira vez registrando este exercício.";
-  botaoRepetir.hidden = !ultima;
-
-  desenharSeries();
+  atualizarExercicioEmUso();
   atualizarBotaoConcluirExercicio();
   desenharDescanso();
   mostrarTela("exercicio");
 }
 
+const elTagAlternativa = document.getElementById("tag-alternativa");
+const botaoTrocar = document.getElementById("trocar-alternativa");
+const elProgressao = document.getElementById("progressao");
+const elProgressaoTexto = document.getElementById("progressao-texto");
+const botaoAplicarProgressao = document.getElementById("aplicar-progressao");
+
+// 42.5 → "42,5"
+function formatarPeso(valor) {
+  return valor.toLocaleString("pt-BR", { maximumFractionDigits: 1 });
+}
+
+// Atualiza tudo que depende da versão em uso (principal ou alternativa):
+// nome, botão de troca, última vez, sugestão de carga, séries e gráfico.
+function atualizarExercicioEmUso() {
+  const ex = exercicioDaTela();
+  const alternativa = usandoAlternativa(treinoAtual, exercicioAtual);
+  const nome = nomeEmUso(treinoAtual, exercicioAtual);
+
+  document.getElementById("exercicio-nome").textContent = nome;
+  elTagAlternativa.hidden = !alternativa;
+  botaoTrocar.textContent = alternativa
+    ? `↺ Voltar ao principal: ${ex.nome}`
+    : `⇄ Usar alternativa: ${ex.alternativa}`;
+
+  const ultima = ultimaVezDoExercicio(nome);
+  elUltimaVez.textContent = ultima
+    ? `Última vez (${formatarData(ultima.data)}): ${descreverSeries(ultima.series)}`
+    : "Primeira vez registrando este exercício.";
+  botaoRepetir.hidden = !ultima;
+
+  desenharProgressao(ex.series, nome);
+  desenharSeries();
+  desenharGrafico(nome);
+}
+
+botaoTrocar.addEventListener("click", () => {
+  definirAlternativa(treinoAtual, exercicioAtual, !usandoAlternativa(treinoAtual, exercicioAtual));
+  atualizarExercicioEmUso();
+});
+
+// ---------- Sugestão de progressão ----------
+
+let progressaoAtual = null;
+
+// Verdadeiro quando todas as séries já estão com o peso sugerido (sugestão aceita).
+function progressaoJaAplicada() {
+  const series = listaDeSeries();
+  return series.length > 0 && series.every((s) => s.peso !== "" && Number(s.peso) === progressaoAtual.peso);
+}
+
+function desenharProgressao(planoSeries, nome) {
+  progressaoAtual = sugerirProgressao(planoSeries, nome);
+  elProgressao.hidden = !progressaoAtual || progressaoJaAplicada();
+  if (elProgressao.hidden) return;
+
+  const peso = formatarPeso(progressaoAtual.peso);
+  elProgressaoTexto.textContent =
+    progressaoAtual.tipo === "subir"
+      ? `↑ Sugestão: subir para ${peso} kg. Na última vez você fez todas as séries com ${progressaoAtual.topo} reps.`
+      : `→ Sugestão: manter ${peso} kg e buscar ${progressaoAtual.topo} reps em todas as séries.`;
+  botaoAplicarProgressao.textContent = `Aplicar ${peso} kg nas séries`;
+}
+
+botaoAplicarProgressao.addEventListener("click", () => {
+  if (!progressaoAtual) return;
+  listaDeSeries().forEach((serie) => {
+    serie.peso = String(progressaoAtual.peso);
+  });
+  salvarDados();
+  elProgressao.hidden = true;
+  desenharSeries();
+});
+
+// ---------- Gráfico de evolução (SVG) ----------
+
+const SVG_NS = "http://www.w3.org/2000/svg";
+
+function elementoSvg(tipo, atributos) {
+  const el = document.createElementNS(SVG_NS, tipo);
+  Object.entries(atributos).forEach(([nome, valor]) => el.setAttribute(nome, valor));
+  return el;
+}
+
+function desenharGrafico(nome) {
+  const pontos = evolucaoDoExercicio(nome);
+  const secao = document.getElementById("evolucao");
+  const area = document.getElementById("grafico");
+  const elInfo = document.getElementById("grafico-info");
+  const tabela = document.getElementById("grafico-tabela");
+
+  secao.hidden = pontos.length < 2;
+  if (secao.hidden) return;
+
+  // Medidas internas do desenho (o SVG estica para a largura da tela).
+  const L = 320;
+  const A = 170;
+  const esq = 40;
+  const dir = 18;
+  const topo = 24;
+  const base = 26;
+
+  const pesos = pontos.map((p) => p.peso);
+  const menor = Math.min(...pesos);
+  const maior = Math.max(...pesos);
+  const folga = Math.max(2.5, (maior - menor) * 0.2);
+  const lo = Math.max(0, menor - folga);
+  const hi = maior + folga;
+  const x = (i) => esq + (i * (L - esq - dir)) / (pontos.length - 1);
+  const y = (v) => topo + ((hi - v) * (A - topo - base)) / (hi - lo);
+
+  const svg = elementoSvg("svg", {
+    viewBox: `0 0 ${L} ${A}`,
+    role: "img",
+    "aria-label": `Evolução de carga de ${nome}`,
+  });
+
+  // Grade horizontal e valores do eixo de peso.
+  [lo, (lo + hi) / 2, hi].forEach((v) => {
+    svg.appendChild(elementoSvg("line", { x1: esq, x2: L - dir, y1: y(v), y2: y(v), class: "grade" }));
+    const rotulo = elementoSvg("text", { x: esq - 6, y: y(v) + 3, "text-anchor": "end", class: "eixo" });
+    rotulo.textContent = formatarPeso(Math.round(v * 10) / 10);
+    svg.appendChild(rotulo);
+  });
+
+  // Datas do primeiro e do último treino.
+  [0, pontos.length - 1].forEach((i) => {
+    const rotulo = elementoSvg("text", {
+      x: x(i),
+      y: A - 6,
+      "text-anchor": i === 0 ? "start" : "end",
+      class: "eixo",
+    });
+    rotulo.textContent = formatarData(pontos[i].data);
+    svg.appendChild(rotulo);
+  });
+
+  svg.appendChild(
+    elementoSvg("polyline", {
+      points: pontos.map((p, i) => `${x(i)},${y(p.peso)}`).join(" "),
+      class: "linha",
+    })
+  );
+
+  // Valor do último treino escrito ao lado do ponto (só esse, para não poluir).
+  const ultimo = pontos.length - 1;
+  const rotuloFinal = elementoSvg("text", { x: x(ultimo), y: y(pontos[ultimo].peso) - 10, "text-anchor": "end", class: "rotulo-valor" });
+  rotuloFinal.textContent = `${formatarPeso(pontos[ultimo].peso)} kg`;
+  svg.appendChild(rotuloFinal);
+
+  const marcadores = [];
+  function selecionar(i) {
+    marcadores.forEach((m, j) => m.setAttribute("r", j === i ? 6 : 4));
+    elInfo.textContent = `${formatarData(pontos[i].data)}: ${formatarPeso(pontos[i].peso)} kg`;
+  }
+
+  pontos.forEach((p, i) => {
+    const marcador = elementoSvg("circle", { cx: x(i), cy: y(p.peso), r: 4, class: "ponto" });
+    marcadores.push(marcador);
+    svg.appendChild(marcador);
+    // Área de toque maior que o ponto, para acertar com o dedo.
+    const alvo = elementoSvg("circle", { cx: x(i), cy: y(p.peso), r: 16, class: "alvo" });
+    alvo.addEventListener("click", () => selecionar(i));
+    svg.appendChild(alvo);
+  });
+
+  area.innerHTML = "";
+  area.appendChild(svg);
+  elInfo.textContent = "Toque num ponto para ver a data e o peso.";
+
+  tabela.innerHTML = "";
+  pontos
+    .slice()
+    .reverse()
+    .forEach((p) => {
+      const item = document.createElement("li");
+      item.textContent = `${formatarData(p.data)}: ${formatarPeso(p.peso)} kg`;
+      tabela.appendChild(item);
+    });
+}
+
 // Preenche as séries com os valores da última vez (cria linhas extras se precisar).
 botaoRepetir.addEventListener("click", () => {
-  const ultima = ultimaVezDoExercicio(exercicioDaTela().nome);
+  const ultima = ultimaVezDoExercicio(nomeEmUso(treinoAtual, exercicioAtual));
   if (!ultima) return;
   const lista = listaDeSeries();
   ultima.series.forEach((anterior, i) => {

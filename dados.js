@@ -96,9 +96,10 @@ const CHAVE_STORAGE = "treino-app-v1";
 //   rascunho:  { "A-0": [{ reps, peso }, ...] }   // treino em andamento, ainda não concluído
 // }
 //   concluidos: { "A-0": true }                    // exercícios já marcados como concluídos no treino em andamento
+//   alternativas: { "A-0": true }                  // exercícios trocados pela alternativa no treino em andamento
 //   config:    { descanso: 90 }                    // preferências (descanso em segundos)
 function dadosVazios() {
-  return { historico: [], rascunho: {}, concluidos: {}, config: { descanso: 90 } };
+  return { historico: [], rascunho: {}, concluidos: {}, alternativas: {}, config: { descanso: 90 } };
 }
 
 function carregarDados() {
@@ -111,6 +112,7 @@ function carregarDados() {
       historico: Array.isArray(lido.historico) ? lido.historico : [],
       rascunho: lido.rascunho && typeof lido.rascunho === "object" ? lido.rascunho : {},
       concluidos: lido.concluidos && typeof lido.concluidos === "object" ? lido.concluidos : {},
+      alternativas: lido.alternativas && typeof lido.alternativas === "object" ? lido.alternativas : {},
       config: {
         descanso: Number(config.descanso) > 0 ? Number(config.descanso) : 90,
       },
@@ -220,6 +222,77 @@ function excluirSessao(sessao) {
   }
 }
 
+// ---------- Exercício alternativo ----------
+
+function usandoAlternativa(letra, indice) {
+  return dados.alternativas[`${letra}-${indice}`] === true;
+}
+
+function definirAlternativa(letra, indice, valor) {
+  const chave = `${letra}-${indice}`;
+  if (valor) dados.alternativas[chave] = true;
+  else delete dados.alternativas[chave];
+  salvarDados();
+}
+
+// Nome do exercício que está sendo feito: o principal ou a alternativa escolhida.
+function nomeEmUso(letra, indice) {
+  const ex = TREINOS[letra].exercicios[indice];
+  return usandoAlternativa(letra, indice) ? ex.alternativa : ex.nome;
+}
+
+// ---------- Progressão de carga e evolução ----------
+
+// "3x10-12" → 3 séries. Se não achar número, usa 3.
+function contarSeries(texto) {
+  const n = parseInt(texto, 10);
+  return Number.isNaN(n) ? 3 : n;
+}
+
+// Repetições no topo da faixa: "3x10-12" → 12, "3x10 cada perna" → 10.
+// Exercícios por tempo ("3x30-45s") ou bi-set com tempos diferentes ("... / ...") → null.
+function topoDaFaixa(texto) {
+  if (texto.includes("/")) return null;
+  const partes = texto.match(/^\d+x(\d+)(?:-(\d+))?(s?)/);
+  if (!partes || partes[3] === "s") return null;
+  return Number(partes[2] || partes[1]);
+}
+
+// Regra simples: se na última vez todas as séries do plano foram feitas no topo da faixa
+// com o mesmo peso, sugere +2,5 kg. Senão, sugere manter o maior peso e buscar o topo.
+// Devolve { tipo: "subir" | "manter", peso, topo } ou null quando não há base para sugerir.
+function sugerirProgressao(planoSeries, nome) {
+  const topo = topoDaFaixa(planoSeries);
+  const ultima = ultimaVezDoExercicio(nome);
+  if (topo === null || !ultima) return null;
+
+  const validas = ultima.series.filter(
+    (s) => typeof s.reps === "number" && typeof s.peso === "number" && s.peso > 0
+  );
+  if (validas.length === 0) return null;
+
+  const pesoMaximo = Math.max(...validas.map((s) => s.peso));
+  const todasNoTopo =
+    validas.length >= contarSeries(planoSeries) &&
+    validas.every((s) => s.peso === pesoMaximo && s.reps >= topo);
+
+  return todasNoTopo
+    ? { tipo: "subir", peso: pesoMaximo + 2.5, topo }
+    : { tipo: "manter", peso: pesoMaximo, topo };
+}
+
+// Maior peso de cada treino em que o exercício aparece, do mais antigo ao mais recente.
+function evolucaoDoExercicio(nome) {
+  const pontos = [];
+  dados.historico.forEach((sessao, ordem) => {
+    const ex = sessao.exercicios.find((e) => e && e.nome === nome && Array.isArray(e.series));
+    if (!ex) return;
+    const pesos = ex.series.map((s) => s.peso).filter((p) => typeof p === "number" && p > 0);
+    if (pesos.length > 0) pontos.push({ data: sessao.data, peso: Math.max(...pesos), ordem });
+  });
+  return pontos.sort((a, b) => (a.data === b.data ? a.ordem - b.ordem : a.data < b.data ? -1 : 1));
+}
+
 // Transforma o rascunho do treino em uma sessão do histórico e limpa o rascunho.
 function concluirTreino(letra) {
   const exercicios = [];
@@ -231,17 +304,23 @@ function concluirTreino(letra) {
         peso: s.peso === "" ? null : Number(s.peso),
       }));
     const concluido = exercicioConcluido(letra, indice);
-    if (series.length > 0 || concluido) exercicios.push({ nome: ex.nome, series, concluido });
+    if (series.length > 0 || concluido) {
+      exercicios.push({
+        nome: nomeEmUso(letra, indice),
+        alternativa: usandoAlternativa(letra, indice),
+        series,
+        concluido,
+      });
+    }
   });
 
   const sessao = { data: dataLocal(), treino: letra, exercicios };
   dados.historico.push(sessao);
 
-  Object.keys(dados.rascunho).forEach((chave) => {
-    if (chave.startsWith(`${letra}-`)) delete dados.rascunho[chave];
-  });
-  Object.keys(dados.concluidos).forEach((chave) => {
-    if (chave.startsWith(`${letra}-`)) delete dados.concluidos[chave];
+  [dados.rascunho, dados.concluidos, dados.alternativas].forEach((mapa) => {
+    Object.keys(mapa).forEach((chave) => {
+      if (chave.startsWith(`${letra}-`)) delete mapa[chave];
+    });
   });
 
   salvarDados();
