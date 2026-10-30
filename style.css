@@ -12,7 +12,7 @@ body {
 main {
   max-width: 480px;
   margin: 0 auto;
-  padding: 20px 16px 100px;
+  padding: calc(20px + env(safe-area-inset-top)) 16px calc(100px + env(safe-area-inset-bottom));
 }
 
 h1 {
@@ -282,6 +282,7 @@ nav {
   display: flex;
   background: #1e293b;
   border-top: 1px solid #334155;
+  padding-bottom: env(safe-area-inset-bottom); /* espaço da barrinha do iPhone */
 }
 
 nav button {

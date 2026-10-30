@@ -532,3 +532,8 @@ document.querySelectorAll("nav button").forEach((botao) => {
 
 selecionarSugerido();
 atualizarSugestao();
+
+// Ativa o funcionamento offline (só funciona no site publicado, não abrindo o arquivo direto).
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
